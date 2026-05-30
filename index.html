@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вечеди — Главная страница</title>
+    <style>
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #030303;
+            color: #ffffff;
+            padding-bottom: 40px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background-color: #030303;
+            border-bottom: 1px solid #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ff4500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo span { color: #ffffff; font-weight: 400; font-size: 16px; margin-left: 2px; }
+        .auth-zone { display: flex; align-items: center; gap: 12px; }
+        .username { font-size: 13px; color: #878a8c; }
+
+        .btn-auth {
+            background-color: #ff4500;
+            color: #ffffff;
+            border: none;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-logout {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border: 1px solid #333;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .tabs-container {
+            padding: 12px 16px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tabs-container::-webkit-scrollbar { display: none; }
+
+        .tab-community {
+            background-color: #1a1a1a;
+            color: #cccccc;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .tab-community.active { background-color: #333333; color: #ffffff; }
+        .filter-sort { display: flex; gap: 16px; padding: 4px 16px 12px 16px; border-bottom: 1px solid #1a1a1a; }
+        .sort-item { font-size: 14px; font-weight: 700; color: #878a8c; cursor: pointer; padding-bottom: 4px; }
+        .sort-item.active { color: #ffffff; border-bottom: 2px solid #ff4500; }
+        .main-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .notice-card {
+            background-color: #0b0c0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #878a8c;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .notice-card span { color: #ff4500; font-weight: 700; cursor: pointer; }
+        .create-card { background-color: #0b0c0d; border: 1px solid #1a1a1a; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+
+        .input-field {
+            background-color: #121314;
+            border: 1px solid #272729;
+            border-radius: 6px;
+            color: #ffffff;
+            padding: 10px 12px;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+
+        .input-field::placeholder { color: #474748; }
+
+        .btn-add-community {
+            background-color: #121314;
+            border: 1px solid #272729;
+            color: #ffffff;
+            border-radius: 6px;
+            padding: 0 12px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        textarea.input-field { resize: none; height: 80px; }
+        .form-footer { display: flex; justify-content: space-between; align-items: center; }
+
+        .select-community {
+            background-color: #121314;
+            border: 1px solid #272729;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .btn-submit { background-color: #ff4500; color: #ffffff; border: none; padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-window { background-color: #0b0c0d; border: 1px solid #272729; border-radius: 16px; width: 90%; max-width: 400px; padding: 24px; }
+        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 16px; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; }
+        .empty-placeholder { text-align: center; color: #545657; font-size: 14px; padding: 40px 0; }
+
+        /* Стили постов и адаптивного медиаконтента */
+        .post-card {
+            background-color: #0b0c0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .post-header { font-size: 12px; color: #878a8c; margin-bottom: 8px; }
+        .post-community { color: #ff4500; font-weight: 700; }
+        .post-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .post-text { font-size: 14px; color: #cccccc; line-height: 1.5; margin-bottom: 12px; }
+        
+        /* Стили для автоматических фото и видео в ленте */
+        .post-media-container {
+            margin-top: 10px;
+            margin-bottom: 14px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+        }
+
+        .post-image {
+            max-width: 100%;
+            max-height: 450px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .post-video {
+            width: 100%;
+            max-height: 360px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .post-actions { display: flex; align-items: center; gap: 4px; background-color: #121314; width: fit-content; padding: 4px 8px; border-radius: 20px; }
+        .vote-arrow { background: none; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 2px 6px; }
+        .vote-arrow.up.voted { color: #ff4500; font-weight: bold; }
+        .vote-arrow.down.voted { color: #7193ff; font-weight: bold; }
+        .vote-counter { font-size: 13px; font-weight: 700; min-width: 24px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#" class="logo">вечеди<span>.ру</span></a>
+        <div class="auth-zone" id="auth-zone">
+            <button class="btn-auth" id="login-trigger-btn">Войти</button>
+        </div>
+    </header>
+
+    <div class="tabs-container" id="tabs-list">
+        <button class="tab-community active" data-target="o/all">o/all</button>
+        <button class="tab-community" data-target="o/memes">o/memes</button>
+        <button class="tab-community" data-target="o/games">o/games</button>
+        <button class="tab-community" data-target="o/news">o/news</button>
+    </div>
+
+    <div class="filter-sort">
+        <div class="sort-item active" data-sort="best">Лучшее</div>
+        <div class="sort-item" data-sort="new">Новое</div>
+    </div>
+
+    <div class="main-content">
+        <div class="notice-card" id="guest-notice">
+            Присоединяйтесь к собранию. <span id="inline-login-btn">Войдите или зарегистрируйтесь</span>, чтобы создавать общины и вести споры.
+        </div>
+
+        <!-- Форма создания постов с новыми полями для Фото и Видео -->
+        <div class="create-card" id="create-post-form">
+            <div class="form-row">
+                <input type="text" class="input-field" id="new-community-name" placeholder="Имя новой общины (латиница)...">
+                <button class="btn-add-community" id="add-community-btn"><span>+</span><span>Община</span></button>
+            </div>
+            <div class="form-row">
+                <input type="text" class="input-field" id="post-title-input" placeholder="Заголовок вече-поста">
+            </div>
+            <div class="form-row">
+                <textarea class="input-field" id="post-text-input" placeholder="Текст обсуждения..."></textarea>
+            </div>
+            <!-- Новые инпуты для медиавложений -->
+            <div class="form-row">
+                <input type="text" class="input-field" id="post-image-input" placeholder="Ссылка на фото (jpg, png, gif)...">
+            </div>
+            <div class="form-row">
+                <input type="text" class="input-field" id="post-video-input" placeholder="Ссылка на видео (mp4, webm) или YouTube...">
+            </div>
+            <div class="form-row form-footer">
+                <div>
+                    <span style="font-size: 13px; color:#878a8c;">В общину:</span>
+                    <select class="select-community" id="community-selector">
+                        <option value="o/memes">o/memes</option>
+                        <option value="o/games">o/games</option>
+                        <option value="o/news">o/news</option>
+                    </select>
+                </div>
+                <button class="btn-submit" id="submit-post-btn">Пульнуть вече 🚀</button>
+            </div>
+        </div>
+
+        <div id="posts-feed"></div>
+        <div class="empty-placeholder" id="empty-msg">В o/all пока пусто.</div>
+    </div>
+
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal-window">
+            <div class="modal-title">Регистрация профиля</div>
+            <div style="margin-bottom: 12px;">
+                <input type="text" class="input-field" id="auth-username" placeholder="Придумайте никнейм...">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <input type="password" class="input-field" id="auth-password" placeholder="Введите пароль...">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-logout" id="modal-close-btn" style="border:none;">Отмена</button>
+                <button class="btn-auth" id="modal-submit-btn">Готово</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Индивидуальная защищенная база данных с обходом кэша прокси
+        const RAW_API_URL = "https://keyvalue.xyz";
+        
+        function getFreshProxyUrl() {
+            return "https://allorigins.win" + encodeURIComponent(RAW_API_URL + "?cachebust=" + Date.now());
+        }
+
+        let activeUser = localStorage.getItem('vechedi_user') || null;
+        let selectedCommunity = "o/all";
+        let selectedSort = "best";
+        let localVoteLogs = JSON.parse(localStorage.getItem('vechedi_votes_log')) || {};
+        let currentLoadedPosts = [];
+
+        const authZone = document.getElementById('auth-zone');
+        const guestNotice = document.getElementById('guest-notice');
+        const createPostForm = document.getElementById('create-post-form');
+        const postsFeed = document.getElementById('posts-feed');
+        const emptyMsg = document.getElementById('empty-msg');
+        const communitySelector = document.getElementById('community-selector');
+        const authModal = document.getElementById('auth-modal');
+
+        function setAuthStatus(user) {
+            activeUser = user;
+            if (activeUser) {
+                if(!activeUser.startsWith('u/')) activeUser = 'u/' + activeUser;
+                localStorage.setItem('vechedi_user', activeUser);
+                authZone.innerHTML = `<span class="username">${activeUser}</span><button class="btn-logout" id="logout-btn">Выйти</button>`;
+                guestNotice.style.display = 'none';
+                createPostForm.style.display = 'block';
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    localStorage.removeItem('vechedi_user');
+                    setAuthStatus(null);
+                });
+            } else {
+                authZone.innerHTML = `<button class="btn-auth" id="login-trigger-btn">Войти</button>`;
+                guestNotice.style.display = 'block';
+                createPostForm.style.display = 'none';
+                document.getElementById('login-trigger-btn').addEventListener('click', openModal);
+            }
+            fetchAndRender();
+        }
+
+        function openModal() { authModal.classList.add('active'); }
+        function closeModal() { authModal.classList.remove('active'); }
+        document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+        document.getElementById('inline-login-btn').addEventListener('click', openModal);
+
+        document.getElementById('modal-submit-btn').addEventListener('click', () => {
+            const usernameInput = document.getElementById('auth-username').value.trim();
+            if(!usernameInput) return alert('Введите никнейм');
+            setAuthStatus(usernameInput);
+            closeModal();
+        });
+
+        async function fetchAndRender() {
+            try {
+                const response = await fetch(getFreshProxyUrl());
+                if (response.ok) {
+                    const textData = await response.text();
+                    currentLoadedPosts = JSON.parse(textData.trim()) || [];
+                }
+            } catch(e) {
+                if(currentLoadedPosts.length === 0) currentLoadedPosts = [];
+            }
+            renderFeed(currentLoadedPosts);
+        }
+        // Умный рендеринг ленты с автоматическим распознаванием фото/видео постов
+        function renderFeed(postsList) {
+            postsFeed.innerHTML = "";
+            let filtered = postsList.filter(post => selectedCommunity === "o/all" ? true : post.community === selectedCommunity);
+
+            if (selectedSort === "best") filtered.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+            else filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (filtered.length === 0) {
+                emptyMsg.style.display = 'block';
+                emptyMsg.textContent = `В ${selectedCommunity} пока пусто.`;
+                return;
+            } else { emptyMsg.style.display = 'none'; }
+
+            filtered.forEach(post => {
+                const userVote = localVoteLogs[post.id] || null;
+                
+                // Генерируем медиавложение, если переданы ссылки
+                let mediaHtml = "";
+                if (post.imageUrl && post.imageUrl.trim() !== "") {
+                    mediaHtml = `<div class="post-media-container"><img src="${escapeHTML(post.imageUrl)}" class="post-image" alt="Медиа вече"></div>`;
+                } else if (post.videoUrl && post.videoUrl.trim() !== "") {
+                    let vUrl = post.videoUrl.trim();
+                    // Поддержка эмбедов YouTube
+                    if (vUrl.includes('://youtube.com') || vUrl.includes('youtu.be')) {
+                        let ytId = vUrl.split('v=')[1] || vUrl.split('/').pop();
+                        if(ytId.includes('&')) ytId = ytId.split('&')[0];
+                        mediaHtml = `<div class="post-media-container"><iframe width="100%" height="315" src="https://youtube.com{ytId}" frameborder="0" allowfullscreen style="border-radius:8px;"></iframe></div>`;
+                    } else {
+                        // Обычный mp4/webm плеер
+                        mediaHtml = `<div class="post-media-container"><video src="${escapeHTML(vUrl)}" controls class="post-video"></video></div>`;
+                    }
+                }
+
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-header"><span class="post-community">${post.community}</span> • От ${post.author}</div>
+                    <div class="post-title">${escapeHTML(post.title)}</div>
+                    <div class="post-text">${escapeHTML(post.text)}</div>
+                    ${mediaHtml}
+                    <div class="post-actions">
+                        <button class="vote-arrow up ${userVote === 'up' ? 'voted' : ''}" onclick="handleSecureVote('${post.id}', 'up')">▲</button>
+                        <span class="vote-counter">${post.votes || 0}</span>
+                        <button class="vote-arrow down ${userVote === 'down' ? 'voted' : ''}" onclick="handleSecureVote('${post.id}', 'down')">▼</button>
+                    </div>
+                `;
+                postsFeed.appendChild(card);
+            });
+        }
+
+        window.handleSecureVote = async function(postId, direction) {
+            if (!activeUser) return alert('Войдите в профиль, чтобы оценить вече!');
+            const currentVote = localVoteLogs[postId];
+            let voteChange = 0;
+
+            if (currentVote === direction) { voteChange = (direction === 'up') ? -1 : 1; delete localVoteLogs[postId]; } 
+            else { if (currentVote) voteChange = (direction === 'up') ? 2 : -2; else voteChange = (direction === 'up') ? 1 : -1; localVoteLogs[postId] = direction; }
+
+            localStorage.setItem('vechedi_votes_log', JSON.stringify(localVoteLogs));
+            
+            const pIdx = currentLoadedPosts.findIndex(p => p.id == postId);
+            if(pIdx !== -1) { currentLoadedPosts[pIdx].votes = (currentLoadedPosts[pIdx].votes || 0) + voteChange; renderFeed(currentLoadedPosts); }
+
+            try { await fetch(RAW_API_URL, { method: 'POST', body: JSON.stringify(currentLoadedPosts) }); } catch(e) {}
+        }
+
+        document.getElementById('submit-post-btn').addEventListener('click', async () => {
+            const titleInput = document.getElementById('post-title-input');
+            const textInput = document.getElementById('post-text-input');
+            const imageInput = document.getElementById('post-image-input');
+            const videoInput = document.getElementById('post-video-input');
+            if (!titleInput.value.trim()) return alert('Заполните заголовок');
+
+            const newPost = {
+                id: Date.now() + Math.random().toString(),
+                title: titleInput.value,
+                text: textInput.value,
+                imageUrl: imageInput.value,
+                videoUrl: videoInput.value,
+                community: communitySelector.value,
+                author: activeUser,
+                votes: 0,
+                date: new Date().toISOString()
+            };
+
+            currentLoadedPosts.push(newPost);
+            renderFeed(currentLoadedPosts);
+
+            titleInput.value = ""; textInput.value = ""; imageInput.value = ""; videoInput.value = "";
+
+            try { await fetch(RAW_API_URL, { method: 'POST', body: JSON.stringify(currentLoadedPosts) }); } catch(e) {}
+        });
+
+        document.getElementById('add-community-btn').addEventListener('click', () => {
+            const input = document.getElementById('new-community-name');
+            let name = input.value.trim().toLowerCase();
+            if(!name) return alert('Введите имя общины');
+            if(!name.startsWith('o/')) name = 'o/' + name;
+
+            const tabsList = document.getElementById('tabs-list');
+            const newTab = document.createElement('button');
+            newTab.className = 'tab-community'; newTab.textContent = name; newTab.setAttribute('data-target', name);
+            tabsList.appendChild(newTab);
+
+            const option = document.createElement('option');
+            option.value = name; option.textContent = name; communitySelector.appendChild(option);
+            newTab.addEventListener('click', handleTabClick);
+            input.value = "";
+        });
+
+        function handleTabClick(e) {
+            document.querySelectorAll('.tab-community').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            selectedCommunity = e.target.getAttribute('data-target');
+            renderFeed(currentLoadedPosts);
+        }
+
+        document.querySelectorAll('.tab-community').forEach(btn => btn.addEventListener('click', handleTabClick));
+        document.querySelectorAll('.sort-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                document.querySelectorAll('.sort-item').forEach(i => i.classList.remove('active'));
+                e.target.classList.add('active');
+                selectedSort = e.target.getAttribute('data-sort');
+                renderFeed(currentLoadedPosts);
+            });
+        });
+
+        function escapeHTML(str) {
+            if(!str) return '';
+            return str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t));
+        }
+
+        setAuthStatus(activeUser);
+        setInterval(fetchAndRender, 7000);
+    </script>
+</body>
+</html>
+
